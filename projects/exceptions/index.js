@@ -16,7 +16,25 @@
    isAllTrue([1, 2, 3, 4, 5], n => n < 10) // вернет true
    isAllTrue([100, 2, 3, 4, 5], n => n < 10) // вернет false
  */
-function isAllTrue(array, fn) {}
+function isAllTrue(array, fn) {
+  if (!Array.isArray(array) || !array.length) {
+    throw new Error('empty array');
+  }
+
+  if (typeof fn !== 'function') {
+    throw new Error('fn is not a function');
+  }
+
+  for (let i = 0; i < array.length; i++) {
+    if (!fn(array[i])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+console.log(isAllTrue([100, 2, 3, 4, 5], (n) => n < 10));
 
 /*
  Задание 2:
@@ -34,8 +52,22 @@ function isAllTrue(array, fn) {}
    isSomeTrue([1, 2, 30, 4, 5], n => n > 20) // вернет true
    isSomeTrue([1, 2, 3, 4, 5], n => n > 20) // вернет false
  */
-function isSomeTrue(array, fn) {}
+function isSomeTrue(array, fn) {
+  if (!Array.isArray(array) || !array.length) {
+    throw new Error('empty array');
+  }
 
+  if (typeof fn !== 'function') {
+    throw new Error('fn is not a function');
+  }
+
+  for (let i = 0; i < array.length; i++) {
+    if (fn(array[i])) {
+      return true;
+    }
+  }
+  return false;
+}
 /*
  Задание 3:
 
@@ -47,7 +79,23 @@ function isSomeTrue(array, fn) {}
  3.3: Необходимо выбрасывать исключение в случаях:
    - fn не является функцией (с текстом "fn is not a function")
  */
-function returnBadArguments(fn, ...args) {}
+function returnBadArguments(fn, ...args) {
+  if (typeof fn != 'function') {
+    throw new Error('fn is not a function');
+  }
+
+  const errorsArr = [];
+
+  for (const elem of args) {
+    try {
+      fn(elem);
+    } catch {
+      errorsArr.push(elem);
+    }
+  }
+
+  return errorsArr;
+}
 
 /*
  Задание 4:
@@ -66,7 +114,60 @@ function returnBadArguments(fn, ...args) {}
    - number не является числом (с текстом "number is not a number")
    - какой-либо из аргументов div является нулем (с текстом "division by 0")
  */
-function calculator(number = 0) {}
+function calculator(number = 0) {
+  if (typeof number != 'number') {
+    throw new Error('number is not a number');
+  }
+
+  const calcOperations = {
+    sum: function (...args) {
+      let result = number;
+
+      for (const element of args) {
+        result += element;
+      }
+
+      return result;
+    },
+    dif: function (...args) {
+      let result = number;
+
+      for (const element of args) {
+        result -= element;
+      }
+
+      return result;
+    },
+    div: function (...args) {
+      let result = number;
+
+      for (const element of args) {
+        if (element === 0) {
+          throw new Error('division by 0');
+        }
+        result = result / element;
+      }
+
+      return result;
+    },
+    mul: function (...args) {
+      let result = number;
+
+      for (const element of args) {
+        result = result * element;
+      }
+
+      return result;
+    },
+  };
+
+  return calcOperations;
+}
+
+console.log(calculator(10).dif(5));
+console.log(calculator(10).sum(5));
+console.log(calculator(10).mul(5));
+console.log(calculator(10).div(5));
 
 /* При решении задач, постарайтесь использовать отладчик */
 
