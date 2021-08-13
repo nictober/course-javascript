@@ -10,7 +10,12 @@
  Пример:
    createDivWithText('loftschool') // создаст элемент div, поместит в него 'loftschool' и вернет созданный элемент
  */
-function createDivWithText(text) {}
+function createDivWithText(text) {
+  const newDiv = document.createElement('div');
+  newDiv.textContent = text;
+
+  return newDiv;
+}
 
 /*
  Задание 2:
@@ -18,10 +23,17 @@ function createDivWithText(text) {}
  Функция должна вставлять элемент, переданный в параметре what в начало элемента, переданного в параметре where
 
  Пример:
-   prepend(document.querySelector('#one'), document.querySelector('#two')) // добавит элемент переданный первым аргументом в начало элемента переданного вторым аргументом
+   prepend(document.querySelector('#one'), document.querySelector('#two')) // добавит 
+   элемент переданный первым аргументом в начало элемента переданного вторым аргументом
  */
-function prepend(what, where) {}
+function prepend(what, where) {
+  where.insertBefore(what, where.firstChild);
+}
 
+// const div = document.getElementById("myDiv")
+// const par = document.querySelector("#myP")
+
+// prepend(par, div)
 /*
  Задание 3:
 
@@ -41,7 +53,27 @@ function prepend(what, where) {}
 
    findAllPSiblings(document.body) // функция должна вернуть массив с элементами div и span т.к. следующим соседом этих элементов является элемент с тегом P
  */
-function findAllPSiblings(where) {}
+function findAllPSiblings(where) {
+  const pSiblings = [];
+
+  const nodeCollection = where.children;
+
+  for (let i = 0; nodeCollection.length > i; i++) {
+    if (nodeCollection[i + 1] && nodeCollection[i + 1].tagName === 'P') {
+      pSiblings.push(nodeCollection[i]);
+    }
+  }
+  return pSiblings;
+
+  ////////////////////////////////////////////////
+
+  // for (let i = 0; where.children.length > i; i++) {
+  //   if (where.children[i].nextElementChild != null && where.children.nextElementChild.tagName === "P") {
+  //     pSiblings.push(where.children[i])
+  //   }
+  // }
+  // return pSiblings
+}
 
 /*
  Задание 4:
@@ -63,7 +95,7 @@ function findAllPSiblings(where) {}
 function findError(where) {
   const result = [];
 
-  for (const child of where.childNodes) {
+  for (const child of where.children) {
     result.push(child.textContent);
   }
 
@@ -82,7 +114,13 @@ function findError(where) {
    После выполнения функции, дерево <div></div>привет<p></p>loftchool!!!
    должно быть преобразовано в <div></div><p></p>
  */
-function deleteTextNodes(where) {}
+function deleteTextNodes(where) {
+  for (const node of where.childNodes) {
+    if (node.nodeType === 3) {
+      node.remove();
+    }
+  }
+}
 
 /*
  Задание 6:
@@ -95,8 +133,24 @@ function deleteTextNodes(where) {}
    После выполнения функции, дерево <span> <div> <b>привет</b> </div> <p>loftchool</p> !!!</span>
    должно быть преобразовано в <span><div><b></b></div><p></p></span>
  */
-function deleteTextNodesRecursive(where) {}
+function deleteTextNodesRecursive(where) {
+  // for (const node of where.childNodes) {
+  //   if (node.nodeType === 3) {
+  //     node.remove()
+  //   } else if (node.nodeType === 1) {
+  //     deleteTextNodesRecursive(node)
+  //   }
+  // }
 
+  for (let i = 0; i < where.childNodes.length; i++) {
+    if (where.childNodes[i].nodeType === 3) {
+      where.childNodes[i].remove();
+      i--;
+    } else if (where.childNodes[i].nodeType === 1) {
+      deleteTextNodesRecursive(where.childNodes[i]);
+    }
+  }
+}
 /*
  Задание 7 *:
 
@@ -117,8 +171,39 @@ function deleteTextNodesRecursive(where) {}
      texts: 3
    }
  */
-function collectDOMStat(root) {}
+function collectDOMStat(root) {
+  const statsObj = {
+    tags: {},
+    classes: {},
+    texts: 0,
+  };
+  function analyseNode(root) {
+    for (const node of root.childNodes) {
+      if (node.nodeType === 3) {
+        statsObj.texts++;
+      } else if (node.nodeType === 1) {
+        if (node.tagName in statsObj.tags) {
+          statsObj.tags[node.tagName]++;
+        } else {
+          statsObj.tags[node.tagName] = 1;
+        }
 
+        for (const className of node.classList) {
+          if (className in statsObj.classes) {
+            statsObj.classes[className]++;
+          } else {
+            statsObj.classes[className] = 1;
+          }
+        }
+        analyseNode(node);
+      }
+    }
+  }
+
+  analyseNode(root);
+
+  return statsObj;
+}
 /*
  Задание 8 *:
 
@@ -151,7 +236,35 @@ function collectDOMStat(root) {}
      nodes: [div]
    }
  */
-function observeChildNodes(where, fn) {}
+function observeChildNodes(where, fn) {
+  // Выбираем целевой элемент
+  const target = where;
+  // Конфигурация observer (за какими изменениями наблюдать)
+  const config = {
+    childList: true,
+    subtree: true,
+  };
+
+  // Колбэк-функция при срабатывании мутации
+  const callback = function (mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'childList') {
+        console.log('A child node: has been added or removed.');
+        fn({
+          type: mutation.addedNodes.length ? 'insert' : 'remove',
+          nodes: [
+            ...(mutation.addedNodes.length ? mutation.addedNodes : mutation.removedNodes),
+          ],
+        });
+      }
+    }
+  };
+  // Создаём экземпляр наблюдателя с указанной функцией колбэка
+  const observer = new MutationObserver(callback);
+
+  // Начинаем наблюдение за настроенными изменениями целевого элемента
+  observer.observe(target, config);
+}
 
 export {
   createDivWithText,
